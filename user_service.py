@@ -1,17 +1,48 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import Column, Integer, String, Boolean, select
+from pydantic import BaseModel
 
 app = FastAPI()
 
-# Fake User Database
-users_db = {1: {"id": 1, "name": "Alice"}, 2: {"id": 2, "name": "Bob"}}
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/user_service"
+engine = create_async_engine(DATABASE_URL, echo=True)
+AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    is_admin = Column(Boolean, default=False)
+
+
+class UserCreate(BaseModel):
+    name: str
+    is_admin: bool = False
+
+@app.on_event("startup")
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session
 
 @app.get("/users/{user_id}")
-def get_user(user_id: int):
-    return users_db.get(user_id, {"error": "User not found"})
+async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 @app.post("/users/")
-def create_user(user_id: int, name: str):
-    if user_id in users_db:
-        return {"error": "User already exists"}
-    users_db[user_id] = {"id": user_id, "name": name}
-    return {"message": "User created", "user": users_db[user_id]}
+async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
+    new_user = User(**user.dict())
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    return new_user
