@@ -1,7 +1,7 @@
 import { useState } from "react";
 import api from "../api";
 
-export default function AddCar() {
+export default function AddCar({ onAdd }) {
   const [car, setCar] = useState({
     make: "",
     model: "",
@@ -15,9 +15,12 @@ export default function AddCar() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    api.post("/cars/", { ...car, price: parseInt(car.price) }).then(() => {
-      alert("Car Added");
-    });
+    api
+      .post("/cars/", { ...car, price: parseInt(car.price) })
+      .then(() => {
+        alert("Car added!");
+        onAdd();
+      });
   };
 
   return (

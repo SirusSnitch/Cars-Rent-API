@@ -1,7 +1,7 @@
 import { useState } from "react";
 import api from "../api";
 
-export default function AddUser() {
+export default function AddUser({ onAdd }) {
   const [user, setUser] = useState({ name: "", is_admin: false });
 
   const handleChange = (e) => {
@@ -11,9 +11,13 @@ export default function AddUser() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    api.post("http://localhost:8002/users/", user).then(() => {
-      alert("User Created");
-    });
+    api
+      .post("/users/", user)
+      .then(() => {
+        alert("User created!");
+        onAdd(); // trigger refresh
+      })
+      .catch((err) => console.error(err));
   };
 
   return (

@@ -53,3 +53,9 @@ async def rent_car(user_id: int, car_id: int, db: AsyncSession = Depends(get_db)
     producer.send('rental_events', {"event": "car_rented", "user_id": user_id, "car_id": car_id})
 
     return {"message": "Car rented successfully"}
+
+
+@app.get("/rentals/")
+async def list_rentals(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Rental))
+    return result.scalars().all()

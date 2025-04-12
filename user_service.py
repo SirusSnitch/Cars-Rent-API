@@ -39,6 +39,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 @app.post("/users/")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     new_user = User(**user.dict())
@@ -46,3 +47,8 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(new_user)
     return new_user
+
+@app.get("/users/")
+async def list_users(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User))
+    return result.scalars().all()
