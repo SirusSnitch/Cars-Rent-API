@@ -2,11 +2,11 @@ import { useState } from "react";
 import api from "../api";
 
 export default function AddUser({ onAdd }) {
-  const [user, setUser] = useState({ name: "", is_admin: false });
+  const [user, setUser] = useState({ name: "", surname: "" });
 
   const handleChange = (e) => {
-    const { name, type, checked, value } = e.target;
-    setUser({ ...user, [name]: type === "checkbox" ? checked : value });
+    const { name, value } = e.target;
+    setUser({ ...user, [name]: value });
   };
 
   const handleSubmit = (e) => {
@@ -22,11 +22,18 @@ export default function AddUser({ onAdd }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <input name="name" placeholder="User Name" onChange={handleChange} />
-      <label>
-        <input type="checkbox" name="is_admin" onChange={handleChange} />
-        Admin
-      </label>
+      <input
+        name="name"
+        placeholder="User Name"
+        onChange={handleChange}
+        value={user.name}
+      />
+      <input
+        name="surname"
+        placeholder="Surname"
+        onChange={handleChange}
+        value={user.surname}
+      />
       <button type="submit">Add User</button>
     </form>
   );

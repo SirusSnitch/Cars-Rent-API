@@ -1,7 +1,7 @@
 import { useState } from "react";
 import api from "../api";
 
-export default function RentCar() {
+export default function RentCar({ onAdd }) {
   const [form, setForm] = useState({ user_id: "", car_id: "" });
 
   const handleChange = (e) => {
@@ -10,9 +10,16 @@ export default function RentCar() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    api.post("/rent/", null, { params: form }).then(() => {
-      alert("Car Rented");
-    });
+    api
+      .post("/rent/", null, { params: form })
+      .then(() => {
+        alert("Car rented successfully!");
+        onAdd(); // Trigger refresh in RentalList
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Rental failed");
+      });
   };
 
   return (

@@ -15,12 +15,13 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    is_admin = Column(Boolean, default=False)
+    surname = Column(String, nullable=False)
 
 
 class UserCreate(BaseModel):
     name: str
-    is_admin: bool = False
+    surname: str
+
 
 @app.on_event("startup")
 async def startup():
@@ -47,6 +48,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(new_user)
     return new_user
+
 
 @app.get("/users/")
 async def list_users(db: AsyncSession = Depends(get_db)):

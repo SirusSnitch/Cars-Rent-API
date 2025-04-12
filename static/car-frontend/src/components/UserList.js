@@ -14,7 +14,7 @@ export default function UserList({ refresh }) {
       <ul>
         {users.map((u) => (
           <li key={u.id}>
-            {u.name} ({u.is_admin ? "Admin" : "User"})
+            {u.name} {u.surname}
           </li>
         ))}
       </ul>

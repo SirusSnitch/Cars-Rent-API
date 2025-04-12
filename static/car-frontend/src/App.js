@@ -24,7 +24,7 @@ function App() {
 
       <hr />
       <h2>🔁 Rentals</h2>
-      <RentCar />
+      <RentCar onAdd={triggerRefresh} />
       <RentalList refresh={refresh} />
     </div>
   );
