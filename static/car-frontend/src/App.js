@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./App.css";
 import CarList from "./components/CarList";
 import AddCar from "./components/AddCar";
 import AddUser from "./components/AddUser";
@@ -8,24 +9,44 @@ import RentalList from "./components/RentalList";
 
 function App() {
   const [refresh, setRefresh] = useState(0);
+  const [section, setSection] = useState("cars"); // default is 'cars'
+
   const triggerRefresh = () => setRefresh((r) => r + 1);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>🚗 Car Management</h1>
+    <div>
+      <nav>
+        <ul>
+          <li onClick={() => setSection("cars")}>Cars</li>
+          <li onClick={() => setSection("users")}>Users</li>
+          <li onClick={() => setSection("rentals")}>Rent</li>
+        </ul>
+      </nav>
 
-      <AddCar onAdd={triggerRefresh} />
-      <CarList refresh={refresh} />
+      <div style={{ padding: "20px" }}>
+        <h1>🚗 Car Management</h1>
 
-      <hr />
-      <h2>👤 User Management</h2>
-      <AddUser onAdd={triggerRefresh} />
-      <UserList refresh={refresh} />
+        {section === "cars" && (
+          <>
+            <AddCar onAdd={triggerRefresh} />
+            <CarList refresh={refresh} />
+          </>
+        )}
 
-      <hr />
-      <h2>🔁 Rentals</h2>
-      <RentCar onAdd={triggerRefresh} />
-      <RentalList refresh={refresh} />
+        {section === "users" && (
+          <>
+            <AddUser onAdd={triggerRefresh} />
+            <UserList refresh={refresh} />
+          </>
+        )}
+
+        {section === "rentals" && (
+          <>
+            <RentCar onAdd={triggerRefresh} />
+            <RentalList refresh={refresh} />
+          </>
+        )}
+      </div>
     </div>
   );
 }

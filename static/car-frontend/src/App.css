@@ -36,3 +36,33 @@
     transform: rotate(360deg);
   }
 }
+
+/* Navbar container */
+nav {
+  background-color: #333;
+  padding: 10px 20px;
+}
+
+/* Top-level nav list */
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Each nav item */
+nav li {
+  color: white;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+/* Hover effect */
+nav li:hover {
+  background-color: #555;
+}
+
