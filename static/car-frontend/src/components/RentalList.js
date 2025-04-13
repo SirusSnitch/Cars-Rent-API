@@ -13,8 +13,8 @@ export default function RentalList({ refresh }) {
       <h2>All Rentals</h2>
       <ul>
         {rentals.map((r) => (
-          <li key={r.id}>
-            User #{r.user_id} rented Car #{r.car_id}
+          <li key={r.rental_id}>
+            {r.user} rented {r.car}
           </li>
         ))}
       </ul>

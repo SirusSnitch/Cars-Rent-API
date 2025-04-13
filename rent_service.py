@@ -65,4 +65,32 @@ async def rent_car(user_id: int, car_id: int, db: AsyncSession = Depends(get_db)
 @app.get("/rentals/")
 async def list_rentals(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Rental))
-    return result.scalars().all()
+    rentals = result.scalars().all()
+
+    readable_rentals = []
+    async with httpx.AsyncClient() as client:
+        for rental in rentals:
+            # Fetch user
+            user_response = await client.get(f"http://localhost:8002/users/{rental.user_id}")
+            if user_response.status_code == 200:
+                user_data = user_response.json()
+                user_name = f"{user_data['name']} {user_data['surname']}"
+            else:
+                user_name = f"User#{rental.user_id}"
+
+            # Fetch car
+            car_response = await client.get(f"http://localhost:8001/cars/{rental.car_id}")
+            if car_response.status_code == 200:
+                car_data = car_response.json()
+                car_name = f"{car_data['make']} {car_data['model']}"
+            else:
+                car_name = f"Car#{rental.car_id}"
+
+            readable_rentals.append({
+                "rental_id": rental.id,
+                "user": user_name,
+                "car": car_name
+            })
+
+    return readable_rentals
+
