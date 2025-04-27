@@ -11,13 +11,22 @@ export default function RentalList({ refresh }) {
   return (
     <div>
       <h2>All Rentals</h2>
-      <ul>
-        {rentals.map((r) => (
-          <li key={r.rental_id}>
-            {r.user} rented {r.car}
-          </li>
-        ))}
-      </ul>
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Car</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rentals.map((r) => (
+            <tr key={r.rental_id}>
+              <td>{r.user}</td>
+              <td>{r.car}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
