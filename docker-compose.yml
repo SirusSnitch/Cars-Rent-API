@@ -1,0 +1,140 @@
+version: "3.9"
+
+services:
+  db_user:
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=user_service
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_user_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  db_car:
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=car_service
+    ports:
+      - "5434:5432"
+    volumes:
+      - db_car_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  db_rent:
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=rental_service
+    ports:
+      - "5435:5432"
+    volumes:
+      - db_rent_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - app_network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - app_network
+
+  car:
+    build:
+      context: ./backend  # Ensure the path is correct here
+    command: ["uvicorn", "car_service:app", "--host", "0.0.0.0", "--port", "8001"]
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db_car
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db_car:5432/car_service
+    networks:
+      - app_network
+
+  user:
+    build:
+      context: ./backend  # Ensure the path is correct here
+    command: ["uvicorn", "user_service:app", "--host", "0.0.0.0", "--port", "8002"]
+    ports:
+      - "8002:8002"
+    depends_on:
+      - db_user
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db_user:5432/user_service
+    networks:
+      - app_network
+
+  rent:
+    build:
+      context: ./backend  # Ensure the path is correct here
+    command: ["sh", "-c", "sleep 10 && uvicorn rent_service:app --host 0.0.0.0 --port 8003"]
+    ports:
+      - "8003:8003"
+    depends_on:
+      - db_rent
+      - kafka
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db_rent:5432/rental_service
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - app_network
+
+  gateway:
+    build:
+      context: ./backend  # Ensure the path is correct here
+    command: ["uvicorn", "gateway_service:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      - user
+      - car
+      - rent
+    networks:
+      - app_network
+
+  frontend:
+    build:
+      context: ./static/car-frontend  # Ensure the path is correct here
+    ports:
+      - "3000:80"
+    networks:
+      - app_network
+
+volumes:
+  db_user_data:
+  db_car_data:
+  db_rent_data:
+
+networks:
+  app_network:
+    driver: bridge
